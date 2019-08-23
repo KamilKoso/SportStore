@@ -1,0 +1,61 @@
+﻿@model SportsStore.WebUI.Models.CartIndexViewModel
+
+@{ 
+    ViewBag.Title = "Sklep sportowy: Twój koszyk";
+}
+
+<style>    #cartTable td {
+        vertical-align: middle;
+    }
+</style>
+
+<h2> Twój koszyk</h2>
+<table class="table" id="cartTable">
+    <thead>
+        <tr>
+            <th>Ilość</th>
+            <th>Produkt</th>
+            <th class="text-right">Cena</th>
+            <th class="text-right">Wartość</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @{ foreach (var line in Model.Cart.Lines)
+            {
+                <tr>
+                    <td class="text-center">@line.Quantity</td>
+                    <td class="text-left">@line.Product.Name</td>
+                    <td class="text-right">@line.Product.Price.ToString("c")</td>
+                    <td class="text-right">@((line.Quantity * line.Product.Price).ToString("c"))</td>
+                    <td>
+                        @using (Html.BeginForm("RemoveFromCart", "Cart"))
+                        {
+                            @Html.Hidden("productId", line.Product.ProductID)
+                            @Html.HiddenFor(x => x.ReturnUrl)
+                                                                            <!--Przekazujemy returnurl z modelu do metody akcji RemoveFromCart, ponieważ ta wywołuje metode index, i gdyby returnURL z modelu nie zostało
+                                                                            przekazane do meotdy akcji RemoveFromCart, URL do strony z której przyszliśmy do koszyka zostałby utracony, w przypadku powyższym
+                                                                            returnUrl uzyskiwane jest w ProductSummary, która przy nacisnięciu Dodaj do koszyka, przekazuje parametrowi returnUrl, aktualny adres url
+                                                                            za pomoca metody Request.Url.PathAndQuery, nastepnie Metoda AddToCart przekazuje ten parametr do metody Index ktora to generuje View z modelem
+                                                                            new CartViewModel który ma parametr ReturnUrl przypisany do returnUrl przekazanego z AddToCart. Przycisk RemoveFromCart również wywołuje metode Index
+                                                                            I tworzony jest nowy obiekt CartViewModel któremu musimy przekazać ponownie returnUrl, i robimy to właśnie poprzez pobranie go z tego modelu-->
+                            <input class="btn btn-sm btn-warning" type="submit" value="Usuń" />
+                        }
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+
+    <tfoot>
+        <tr>
+            <td colspan="3" class="text-right">Razem:</td>
+            <td class="text-right">@Model.Cart.ComputeTotalValue().ToString("c")</td>
+        </tr>
+    </tfoot>
+</table>
+
+<div class="text-center">
+    <a class="btn btn-primary" href="@Model.ReturnUrl">Kontynuuj zakupy</a>
+    @Html.ActionLink("Złóż zamówienie", "Checkout", null, new { @class = "btn btn-primary"})
+</div>
